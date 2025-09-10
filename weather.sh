@@ -67,9 +67,39 @@ select_country() {
     if [ "$choice" -eq 0 ]; then
         return
     elif [ "$choice" -ge 1 ] && [ "$choice" -le "${#COUNTRIES[@]}" ]; then
-        echo "You selected: ${COUNTRIES[$((choice-1))]}"
+        selected_country="${COUNTRIES[$((choice-1))]}"
+        echo "You selected: $selected_country"
+        select_state "$selected_country"
     else
         echo "Invalid number."
+    fi
+}
+
+get_states() {
+    local country="$1"
+    mapfile -t STATES < <(grep '"Brazil"' worldcities.csv | cut -d',' -f8 | tr -d '"' | sort | uniq)
+}
+
+# Select state
+select_state() {
+    get_states "$1"
+    if [ ${#STATES[@]} -eq 0 ]; then
+        echo "No states found for $1."
+        return
+    fi
+
+    echo "===== STATES IN $1 ====="
+    for i in "${!STATES[@]}"; do
+        printf "%d - %s\n" "$((i+1))" "${STATES[i]}"
+    done
+
+    read -rp "Select a state by number (0 to go back): " choice
+    if [ "$choice" -eq 0 ]; then
+        return
+    elif [[ "$choice" -ge 1 && "$choice" -le "${#STATES[@]}" ]]; then
+        echo "You selected: ${STATES[$((choice-1))]}"
+    else
+        echo "Invalid selection."
     fi
 }
 
