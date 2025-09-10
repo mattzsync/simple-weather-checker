@@ -1,1 +1,1 @@
-# Simple Weather cheker with Bash
+# Simple Weather checker with Bash using wttr.in
