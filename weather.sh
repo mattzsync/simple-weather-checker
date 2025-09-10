@@ -77,30 +77,47 @@ select_country() {
 
 get_states() {
     local country="$1"
-    mapfile -t STATES < <(grep '"Brazil"' worldcities.csv | cut -d',' -f8 | tr -d '"' | sort | uniq)
+    mapfile -t STATES < <(grep -i "$country" "$CSV_FILE" | cut -d',' -f8 | tr -d '"' | grep -v '^$' | sort -u)
 }
 
-# Select state
 select_state() {
-    get_states "$1"
+    local country="$1"
+    get_states "$country"
+
     if [ ${#STATES[@]} -eq 0 ]; then
-        echo "No states found for $1."
-        return
+        echo "No states found for $country."
+        return 1
     fi
 
-    echo "===== STATES IN $1 ====="
+    echo "===== STATES IN $country ====="
     for i in "${!STATES[@]}"; do
         printf "%d - %s\n" "$((i+1))" "${STATES[i]}"
     done
 
     read -rp "Select a state by number (0 to go back): " choice
     if [ "$choice" -eq 0 ]; then
-        return
+        return 1
     elif [[ "$choice" -ge 1 && "$choice" -le "${#STATES[@]}" ]]; then
-        echo "You selected: ${STATES[$((choice-1))]}"
+        selected_state="${STATES[$((choice-1))]}"
+        echo "You selected: $selected_state"
+	show_weather "$selected_state"
     else
         echo "Invalid selection."
+        return 1
     fi
+}
+
+# Show the weather
+show_weather() {
+    local state="$1"
+    if [ -z "$state" ]; then
+        echo "No state selected."
+        return
+    fi
+
+    echo "Fetching weather for $state..."
+    curl "https://wttr.in/$state"
+    break
 }
 
 # Start the menu
