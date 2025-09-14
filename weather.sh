@@ -122,4 +122,3 @@ show_weather() {
 
 # Start the menu
 main_menu
-
